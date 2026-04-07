@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Ingredient;
 
+/**
+ * IngredientController - Manage ingredients CRUD
+ */
 class IngredientController extends Controller
 {
     public function index()
