@@ -8,6 +8,13 @@ use App\Models\Categories;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
+/**
+ * RecipeController handles CRUD operations for recipes.
+ * 
+ * This controller manages recipe creation, editing, viewing, and deletion
+ * with proper validation and authorization checks.
+ */
+
 class RecipeController extends Controller
 {
     public function index()
