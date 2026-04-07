@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Country;
 
+/**
+ * CountryController - Manage countries CRUD
+ */
 class CountryController extends Controller
 {
     public function index(){
