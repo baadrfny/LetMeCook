@@ -29,7 +29,7 @@ class GroqService
                 'Authorization' => 'Bearer ' . $this->apiKey,
                 'Content-Type' => 'application/json',
             ])->timeout(30)->post($this->baseUrl, [
-                
+                'model' => 'llama-3.3-70b-versatile',
                 'messages' => [
                     [
                         'role' => 'system',
