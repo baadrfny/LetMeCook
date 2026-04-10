@@ -17,7 +17,6 @@ class GroqService
 
     public function generateRecipe(array $ingredients)
     {
-        // التحقق من وجود مكونات لتجنب طلبات فارغة
         if (empty($ingredients)) {
             return ['error' => 'No ingredients provided'];
         }
@@ -30,17 +29,31 @@ class GroqService
                 'Content-Type' => 'application/json',
             ])->timeout(30)->post($this->baseUrl, [
                 'model' => 'llama-3.3-70b-versatile',
+
                 'messages' => [
                     [
                         'role' => 'system',
-                        'content' => "You are a professional chef. You MUST respond ONLY with a valid JSON object. Do not include any introductory text or markdown code blocks. 
-                        The structure must be exactly: 
-                        {
-                            \"name\": \"Recipe Name\",
-                            \"description\": \"Brief description\",
-                            \"preparation_steps\": \"Step 1... Step 2...\",
-                            \"cook_time\": 30
-                        }"
+                        'content' => "You are a professional chef. Your task is to generate a recipe based on provided ingredients.
+            
+            RULES:
+            1. Return ONLY a valid JSON object.
+            2. Do not include any explanation, markdown, or text outside JSON.
+            3. Use exact keys: 'name', 'description', 'preparation_steps', 'cook_time', 'difficulty', 'country_origin'.
+            4. 'cook_time' must be an integer (minutes).
+            5. 'preparation_steps' should be a single string with steps separated by '\n'.
+            6. 'difficulty' should be: 'Easy', 'Medium', or 'Hard'.
+            7. 'country_origin' should be a logical country based on ingredients.
+            8. If ingredients are mismatched, try to find the most logical dish.
+            
+            EXAMPLE OUTPUT:
+            {
+                \"name\": \"Example Recipe\",
+                \"description\": \"A brief tasty description.\",
+                \"preparation_steps\": \"Step 1...\\nStep 2...\",
+                \"cook_time\": 20,
+                \"difficulty\": \"Easy\",
+                \"country_origin\": \"Italy\"
+            }"
                     ],
                     [
                         'role' => 'user',
@@ -52,16 +65,14 @@ class GroqService
 
             if ($response->successful()) {
                 $content = $response->json()['choices'][0]['message']['content'] ?? '{}';
-                
-                // تنظيف النص في حال أضاف الـ AI علامات ```json
+
                 $cleanContent = preg_replace('/```json|```/', '', $content);
-                
+
                 return json_decode(trim($cleanContent), true) ?? ['error' => 'Failed to parse AI response'];
             }
 
             Log::error('Groq API Error: ' . $response->body());
             return ['error' => 'API Connection Failed', 'details' => $response->json()];
-
         } catch (\Exception $e) {
             Log::error('Groq Service Exception: ' . $e->getMessage());
             return ['error' => 'Something went wrong', 'message' => $e->getMessage()];

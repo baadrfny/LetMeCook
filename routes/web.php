@@ -5,9 +5,26 @@ use App\Http\Controllers\RecipeController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\IngredientController;
 use App\Http\Controllers\FavoriteController;
+use App\Http\Controllers\AI\RecipeGeneratorController;
 use App\Services\GroqService;
 
 use Illuminate\Support\Facades\Route;
+
+
+
+
+
+// مسار صفحة "ماذا يوجد في ثلاجتي؟" للعميل
+Route::get('/what-to-cook', [RecipeGeneratorController::class, 'showAiGenerator'])->name('client.ai.index');
+// مسار استقبال الطلب من العميل
+Route::post('/ai/generate-guest', [RecipeGeneratorController::class, 'generate'])->name('ai.generate.guest');
+
+
+
+
+
+
+
 
 Route::get('/', function () {
     return view('welcome');
@@ -23,13 +40,13 @@ Route::get('/dashboard', [RecipeController::class, 'index'])
 
 
 Route::get('/test-ai', function (GroqService $groq) {
-    // جرب مكونات موجودة فعلياً
     $result = $groq->generateRecipe(['chicken', 'garlic', 'lemon', 'olive oil']);
     
-    // استخدام dd سيعطيك تفاصيل المصفوفة بشكل واضح جداً
     dd($result); 
 });
 
+Route::get('/ai-generator', [RecipeGeneratorController::class, 'index'])->name('ai.index');
+Route::post('/ai/generate', [RecipeGeneratorController::class, 'generate'])->name('ai.generate');
 /**
  * User Routes (Standard Authenticated Users)
  */
