@@ -56,6 +56,7 @@ class GroqService
                 'temperature' => 0.5,
             ]);
 
+            
             if ($response->successful()) {
                 $content = $response->json()['choices'][0]['message']['content'] ?? '{}';
 

@@ -14,19 +14,10 @@ class RecipeGeneratorController extends Controller
 
 
     public function showAiGenerator()
-{
-    $ingredients = Ingredient::all(); 
-    return view('ai.ai-generator', compact('ingredients')); 
-}
-
-
-
-
-
-
-
-
-
+    {
+        $ingredients = Ingredient::all(); 
+        return view('ai.ai-generator', compact('ingredients')); 
+    }
 
     public function index(){
         $ingredients = Ingredient::all();
