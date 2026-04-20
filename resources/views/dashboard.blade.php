@@ -30,6 +30,7 @@
                 </div>
             </div>
 
+            
             <div class="flex-1 relative">
                 <div class="absolute inset-0 bg-orange-500/15 rounded-full blur-[100px] animate-pulse"></div>
                 <div class="relative z-10 animate-float">
