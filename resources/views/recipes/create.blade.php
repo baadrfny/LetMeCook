@@ -31,6 +31,7 @@
                                 class="w-full bg-black/40 border-white/10 rounded-2xl py-5 px-8 text-white focus:border-orange-500/50 focus:ring-0 transition-all placeholder-gray-800 text-lg font-bold shadow-inner">
                         </div>
 
+                        
                         <div class="group space-y-3">
                             <label class="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 ml-2 group-focus-within:text-cyan-400 transition-colors">Category</label>
                             <div class="relative">
