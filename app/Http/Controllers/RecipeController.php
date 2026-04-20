@@ -173,3 +173,4 @@ class RecipeController extends Controller
         return view('recipes.show', compact('recipe', 'videoId'));
     }
 }
+
