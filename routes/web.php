@@ -14,11 +14,8 @@ use Illuminate\Support\Facades\Route;
 
 
 
-// مسار صفحة "ماذا يوجد في ثلاجتي؟" للعميل
 Route::get('/what-to-cook', [RecipeGeneratorController::class, 'showAiGenerator'])->name('client.ai.index');
-// مسار استقبال الطلب من العميل
 Route::post('/ai/generate-guest', [RecipeGeneratorController::class, 'generate'])->name('ai.generate.guest');
-
 
 
 
@@ -84,7 +81,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::resource('countries', CountryController::class);
     
     // Admin Recipe Management
-    Route::get('/recipes', [RecipeController::class, 'index'])->name('recipes.index');
+    Route::get('/recipes', [RecipeController::class, 'myRecipesIndex'])->name('recipes.index');
     Route::get('/recipes/create', [RecipeController::class, 'create'])->name('recipes.create');
     Route::post('/recipes', [RecipeController::class, 'store'])->name('recipes.store');
     Route::get('/recipes/{recipe}', [RecipeController::class, 'show'])->name('recipes.show');

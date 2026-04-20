@@ -15,7 +15,6 @@ class RecipeGeneratorController extends Controller
 
     public function showAiGenerator()
 {
-    // جلب المكونات ليعرضها للعميل ليختار منها
     $ingredients = Ingredient::all(); 
     return view('ai.ai-generator', compact('ingredients')); 
 }
@@ -36,19 +35,22 @@ class RecipeGeneratorController extends Controller
 
     public function generate(Request $request, GroqService $groq)
     {
-
         $request->validate([
-            'ingredients' => 'required|array|min:2'
+            'ingredients' => 'required|string|min:3'
         ]);
 
-        $ingredientNames = Ingredient::whereIn('id', $request->ingredients)->pluck('name')->toArray();
+        // Split the string by commas and clean up
+        $ingredients = array_map('trim', explode(',', $request->ingredients));
+        $ingredients = array_filter($ingredients, function($item) {
+            return !empty($item);
+        });
         
-        $recipe = $groq->generateRecipe($ingredientNames);
+        $recipe = $groq->generateRecipe($ingredients);
 
         if (isset($recipe['error'])) {
             return response()->json(['message' => 'AI is busy, try again!'], 500);
         }
-
+        
         return response()->json($recipe);
     }
 }

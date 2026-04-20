@@ -18,6 +18,9 @@
                     <x-nav-link :href="route('my-recipes.index')" :active="request()->routeIs('my-recipes.index')" class="text-gray-400 hover:text-cyan-400 transition-colors">
                         {{ __('My Recipes') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('client.ai.index')" :active="request()->routeIs('client.ai.index')" class="text-gray-400 hover:text-cyan-400 transition-colors">
+                        {{ __('Recipe suggestion') }}
+                    </x-nav-link>
 
                 </div>
             </div>

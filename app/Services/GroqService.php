@@ -33,34 +33,27 @@ class GroqService
                 'messages' => [
                     [
                         'role' => 'system',
-                        'content' => "You are a professional chef. Your task is to generate a recipe based on provided ingredients.
-            
-            RULES:
-            1. Return ONLY a valid JSON object.
-            2. Do not include any explanation, markdown, or text outside JSON.
-            3. Use exact keys: 'name', 'description', 'preparation_steps', 'cook_time', 'difficulty', 'country_origin'.
-            4. 'cook_time' must be an integer (minutes).
-            5. 'preparation_steps' should be a single string with steps separated by '\n'.
-            6. 'difficulty' should be: 'Easy', 'Medium', or 'Hard'.
-            7. 'country_origin' should be a logical country based on ingredients.
-            8. If ingredients are mismatched, try to find the most logical dish.
-            
-            EXAMPLE OUTPUT:
-            {
-                \"name\": \"Example Recipe\",
-                \"description\": \"A brief tasty description.\",
-                \"preparation_steps\": \"Step 1...\\nStep 2...\",
-                \"cook_time\": 20,
-                \"difficulty\": \"Easy\",
-                \"country_origin\": \"Italy\"
-            }"
+                        'content' => "You are a professional chef. 
+                                    Generate a recipe based on the ingredients provided. 
+                                    CRITICAL: You must detect the language used in the ingredients list and respond entirely in that same language. 
+                                    If the user types in Arabic, answer in Arabic. If in French, answer in French. 
+
+                                    RULES:
+                                    1. Return ONLY a valid JSON object.
+                                    2. Do not include any explanation, markdown, or text outside JSON.
+                                    3. Use exact keys: 'name', 'description', 'preparation_steps', 'cook_time', 'difficulty', 'country_origin'.
+                                    4. 'cook_time' must be an integer (minutes).
+                                    5. 'preparation_steps' should be a single string with steps separated by newline '\\n'.
+                                    6. 'difficulty' should be: 'Easy', 'Medium', or 'Hard'.
+                                    7. 'country_origin' should be a logical country based on ingredients.
+                                    8. If ingredients are mismatched, try to find the most logical dish."
                     ],
                     [
                         'role' => 'user',
                         'content' => "Suggest a recipe using these ingredients: " . $ingredientsString
                     ]
                 ],
-                'temperature' => 0.6,
+                'temperature' => 0.5,
             ]);
 
             if ($response->successful()) {

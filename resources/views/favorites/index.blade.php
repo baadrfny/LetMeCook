@@ -1,112 +1,114 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+        <span class="text-orange-500 font-black tracking-widest uppercase text-xs">Collection</span>
+        <h2 class="font-bold text-2xl text-white leading-tight">
             {{ __('My Favorites') }}
         </h2>
     </x-slot>
 
-    <div class="py-12 bg-gray-50 min-h-screen">
-        <div class="max-w-6xl mx-auto sm:px-6 lg:px-8">
+    <div class="py-12 min-h-screen relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-orange-600/5 rounded-full blur-[120px] -z-10"></div>
+
+        <div class="max-w-7xl mx-auto px-6 lg:px-8">
             
-            <!-- Header -->
-            <div class="mb-8">
-                <h1 class="text-3xl font-bold text-gray-800 mb-2">My Favorite Recipes</h1>
-                <p class="text-gray-600">Recipes you've saved for later</p>
+            <div class="mb-12">
+                <h1 class="text-4xl md:text-5xl font-black text-white mb-4 tracking-tighter">
+                    Saved <span class="text-orange-500 italic">Flavors</span>
+                </h1>
+                <p class="text-gray-500 text-lg font-medium">Your personal collection of culinary inspiration.</p>
             </div>
 
-            <!-- Success/Error Messages -->
             @if(session('success'))
-                <div class="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
-                    {{ session('success') }}
+                <div class="mb-8 p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-2xl backdrop-blur-md flex items-center gap-3">
+                    <i class="fas fa-check-circle"></i>
+                    <span class="text-sm font-bold">{{ session('success') }}</span>
                 </div>
             @endif
 
-            @if(session('error'))
-                <div class="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-                    {{ session('error') }}
-                </div>
-            @endif
-
-            <!-- Favorites List -->
             @auth
                 @if(auth()->user()->favorites->count() > 0)
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
                         @foreach(auth()->user()->favorites as $favorite)
-                            <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
-                                <!-- Recipe Image -->
-                                @if($favorite->recipe->image)
-                                    <img src="{{ asset('storage/' . $favorite->recipe->image) }}" 
-                                         alt="{{ $favorite->recipe->name }}" 
-                                         class="w-full h-48 object-cover">
-                                @else
-                                    <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
-                                        <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                        </svg>
-                                    </div>
-                                @endif
-
-                                <!-- Recipe Info -->
-                                <div class="p-4">
-                                    <h3 class="text-lg font-semibold text-gray-800 mb-2">{{ $favorite->recipe->name }}</h3>
-                                    <p class="text-gray-600 text-sm mb-3 line-clamp-2">{{ $favorite->recipe->description }}</p>
+                            <div class="group relative bg-[#0d0d0d] border border-white/5 rounded-[2.5rem] overflow-hidden hover:border-orange-500/30 transition-all duration-700 shadow-2xl">
+                                
+                                <div class="relative h-64 overflow-hidden">
+                                    @if($favorite->recipe->image)
+                                        <img src="{{ asset('storage/' . $favorite->recipe->image) }}" 
+                                             alt="{{ $favorite->recipe->name }}" 
+                                             class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000">
+                                    @else
+                                        <div class="w-full h-full bg-white/5 flex items-center justify-center">
+                                            <i class="fas fa-utensils text-4xl text-white/10"></i>
+                                        </div>
+                                    @endif
                                     
-                                    <!-- Category Badge -->
-                                    <span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full mb-3">
-                                        {{ $favorite->recipe->category->name }}
-                                    </span>
+                                    <div class="absolute inset-0 bg-gradient-to-t from-[#0d0d0d] via-transparent to-transparent"></div>
 
-                                    <!-- Actions -->
-                                    <div class="flex justify-between items-center">
-                                        <a href="{{ route('recipes.show', $favorite->recipe->id) }}" 
-                                           class="text-blue-600 hover:text-blue-800 font-medium text-sm">
-                                            View Recipe
-                                        </a>
-                                        
-                                        <form action="{{ route('favorites.destroy', $favorite->id) }}" method="POST" class="inline">
+                                    <div class="absolute top-6 right-6 flex gap-2">
+                                        <form action="{{ route('favorites.destroy', $favorite->id) }}" method="POST" onsubmit="return confirm('Remove this masterpiece?')">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" 
-                                                    class="text-red-600 hover:text-red-800 font-medium text-sm"
-                                                    onclick="return confirm('Remove from favorites?')">
-                                                Remove
+                                            <button type="submit" class="w-10 h-10 rounded-xl bg-red-500/10 border border-red-500/20 backdrop-blur-md text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center">
+                                                <i class="fas fa-trash-alt text-xs"></i>
                                             </button>
                                         </form>
+                                    </div>
+                                </div>
+
+                                <div class="p-8">
+                                    <div class="flex items-center gap-3 mb-4">
+                                        <span class="text-[9px] font-black uppercase tracking-widest text-orange-500 bg-orange-500/10 px-3 py-1 rounded-lg">
+                                            {{ $favorite->recipe->category->name }}
+                                        </span>
+                                        <span class="text-gray-600 text-[10px] font-bold">
+                                            <i class="far fa-clock mr-1"></i> {{ $favorite->recipe->cook_time ?? '25' }} MIN
+                                        </span>
+                                    </div>
+
+                                    <h3 class="text-2xl font-bold text-white mb-3 group-hover:text-orange-500 transition-colors">
+                                        {{ $favorite->recipe->name }}
+                                    </h3>
+                                    
+                                    <p class="text-gray-500 text-sm line-clamp-2 mb-8 font-medium leading-relaxed">
+                                        {{ $favorite->recipe->description }}
+                                    </p>
+
+                                    <div class="pt-6 border-t border-white/5">
+                                        <a href="{{ route('my-recipes.show', $favorite->recipe->id) }}" 
+                                           class="flex items-center justify-between group/btn">
+                                            <span class="text-xs font-black uppercase tracking-widest text-white group-hover/btn:text-orange-500 transition-colors">Cook Now</span>
+                                            <div class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center group-hover/btn:bg-orange-500 group-hover/btn:text-black transition-all">
+                                                <i class="fas fa-chevron-right text-[10px]"></i>
+                                            </div>
+                                        </a>
                                     </div>
                                 </div>
                             </div>
                         @endforeach
                     </div>
                 @else
-                    <!-- Empty State -->
-                    <div class="text-center py-12">
-                        <div class="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0L3.82 9.818a4.5 4.5 0 000 6.364l6.364 6.364z"></path>
-                            </svg>
+                    <div class="flex flex-col items-center justify-center py-32 text-center glass rounded-[3rem] border-dashed border-white/10">
+                        <div class="relative mb-8">
+                            <div class="absolute inset-0 bg-orange-500/20 blur-3xl rounded-full"></div>
+                            <div class="relative w-24 h-24 bg-white/5 border border-white/10 rounded-full flex items-center justify-center">
+                                <i class="far fa-heart text-3xl text-gray-600"></i>
+                            </div>
                         </div>
-                        <h3 class="text-xl font-semibold text-gray-800 mb-2">No favorites yet</h3>
-                        <p class="text-gray-600 mb-4">Start adding recipes to your favorites to see them here!</p>
-                        <a href="{{ route('dashboard') }}" 
-                           class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">
+                        <h3 class="text-2xl font-bold text-white mb-2">Your collection is empty</h3>
+                        <p class="text-gray-500 max-w-sm mb-10 font-medium leading-relaxed">
+                            Every great chef needs a library of secrets. Start exploring and save your first recipe.
+                        </p>
+                        <a href="{{ route('welcome') }}" 
+                           class="bg-white text-black font-black py-4 px-10 rounded-2xl hover:bg-orange-500 hover:text-white transition-all shadow-xl">
                             Browse Recipes
                         </a>
                     </div>
                 @endif
             @else
-                <!-- Not Logged In -->
-                <div class="text-center py-12">
-                    <div class="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-semibold text-gray-800 mb-2">Please log in</h3>
-                    <p class="text-gray-600 mb-4">You need to be logged in to view your favorite recipes.</p>
-                    <a href="{{ route('login') }}" 
-                       class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">
-                        Log In
-                    </a>
+                <div class="text-center py-20 glass rounded-[3rem]">
+                    <i class="fas fa-lock text-4xl text-orange-500/20 mb-6"></i>
+                    <h3 class="text-xl font-bold text-white mb-6">Login to see your favorites</h3>
+                    <a href="{{ route('login') }}" class="bg-orange-500 text-black font-black py-3 px-8 rounded-xl">Login</a>
                 </div>
             @endauth
         </div>

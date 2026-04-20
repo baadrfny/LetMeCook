@@ -79,7 +79,7 @@ class RecipeController extends Controller
             $recipe->ingredients()->sync($syncData);
         }
 
-        return redirect()->route('admin.dashboard')->with('success', 'Recipe created successfully!');
+        return redirect()->route('my-recipes.index')->with('success', 'Recipe created successfully!');
     }
 
     public function edit(Recipe $recipe)
@@ -138,7 +138,7 @@ class RecipeController extends Controller
         }
         $recipe->ingredients()->sync($syncData);
 
-        return redirect()->route('admin.dashboard')->with('success', 'Recipe updated successfully!');
+        return redirect()->route('my-recipes.index')->with('success', 'Recipe updated successfully!');
     }
 
     public function destroy(Recipe $recipe)
@@ -152,13 +152,13 @@ class RecipeController extends Controller
         }
 
         $recipe->delete();
-        return redirect()->route('admin.dashboard')->with('success', 'Recipe deleted!');
+        return redirect()->route('my-recipes.index')->with('success', 'Recipe deleted!');
     }
 
     public function show($id)
     {
         $recipe = Recipe::with(['category', 'ingredients', 'user'])->findOrFail($id);
-
+        
         $videoId = null;
         if ($recipe->video_url) {
             if (str_contains($recipe->video_url, 'youtu.be/')) {
@@ -169,7 +169,7 @@ class RecipeController extends Controller
                 $videoId = $vars['v'] ?? null;
             }
         }
-
-        return view('admin.show', compact('recipe', 'videoId'));
+        
+        return view('recipes.show', compact('recipe', 'videoId'));
     }
 }
