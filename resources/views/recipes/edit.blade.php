@@ -34,6 +34,7 @@
                     @csrf
                     @method('PUT')
 
+                    
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
                         <div class="group space-y-3">
                             <label class="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 ml-2 group-focus-within:text-orange-500 transition-colors">Recipe Name</label>
