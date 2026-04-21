@@ -7,18 +7,18 @@ use App\Models\Ingredient;
 use App\Models\Recipe;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Symfony\Component\Console\Output\ConsoleOutput;
 
 class RecipeSeeder extends Seeder
 {
     public function run(): void
     {
         $user = User::first();
-        
-        if (!$user) {
-            $user = User::factory()->create([
-                'name' => 'Chef John',
-                'email' => 'chef@letmecock.com',
-            ]);
+
+        if (! $user) {
+            (new ConsoleOutput())->writeln('<comment>RecipeSeeder skipped: no existing users found.</comment>');
+
+            return;
         }
 
         $recipes = [
@@ -111,9 +111,15 @@ class RecipeSeeder extends Seeder
 
         foreach ($recipes as $recipeData) {
             $category = Categories::where('name', $recipeData['category'])->first();
-            
-            $recipe = Recipe::create([
+
+            if (! $category) {
+                continue;
+            }
+
+            $recipe = Recipe::updateOrCreate([
                 'user_id' => $user->id,
+                'name' => $recipeData['name'],
+            ], [
                 'name' => $recipeData['name'],
                 'description' => $recipeData['description'],
                 'category_id' => $category->id,
@@ -125,16 +131,20 @@ class RecipeSeeder extends Seeder
                 'suggestion_date' => null,
             ]);
 
+            $syncData = [];
+
             foreach ($recipeData['ingredients'] as $ingredientData) {
                 $ingredient = Ingredient::where('name', $ingredientData['name'])->first();
                 
                 if ($ingredient) {
-                    $recipe->ingredients()->attach($ingredient->id, [
+                    $syncData[$ingredient->id] = [
                         'quantity' => $ingredientData['quantity'],
                         'unit' => $ingredientData['unit'],
-                    ]);
+                    ];
                 }
             }
+
+            $recipe->ingredients()->sync($syncData);
         }
     }
 }

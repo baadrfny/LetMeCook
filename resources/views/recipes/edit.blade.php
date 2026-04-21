@@ -27,7 +27,17 @@
             </div>
 
             <div class="bg-white/[0.02] border border-white/10 backdrop-blur-3xl rounded-[3.5rem] p-8 md:p-16 shadow-[0_40px_100px_rgba(0,0,0,0.5)]">
-                <form action="{{ auth()->user()->role === 'admin' ? route('recipes.update', $recipe) : route('my-recipes.update', $recipe) }}" 
+                @if ($errors->any())
+                <div class="bg-red-500/10 border border-red-500 text-red-500 p-4 rounded-2xl mb-6">
+                    <ul class="list-disc ml-5">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+                @endif
+
+                <form id="recipe-form" action="{{ auth()->user()->role === 'admin' ? route('recipes.update', $recipe) : route('my-recipes.update', $recipe) }}" 
                       method="POST" 
                       enctype="multipart/form-data"
                       class="space-y-10">
@@ -48,7 +58,7 @@
                                 <select name="category_id" required
                                     class="w-full bg-black/40 border-white/10 rounded-2xl py-5 px-8 text-white focus:border-cyan-500/50 focus:ring-0 appearance-none transition-all cursor-pointer text-lg font-bold shadow-inner">
                                     @foreach($categories as $category)
-                                    <option value="{{ $category->id }}" {{ $category->id == $recipe->category_id ? 'selected' : '' }} class="bg-gray-900">
+                                    <option value="{{ $category->id }}" {{ (string) old('category_id', $recipe->category_id) === (string) $category->id ? 'selected' : '' }} class="bg-gray-900">
                                         {{ $category->name }}
                                     </option>
                                     @endforeach
@@ -62,6 +72,20 @@
                         <label class="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 ml-2 group-focus-within:text-orange-500 transition-colors">Description</label>
                         <textarea name="description" required rows="2"
                             class="w-full bg-black/40 border-white/10 rounded-2xl py-5 px-8 text-white focus:border-orange-500/50 focus:ring-0 transition-all text-lg font-medium shadow-inner italic">{{ old('description', $recipe->description) }}</textarea>
+                    </div>
+
+                    <div class="space-y-4">
+                        <label class="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 ml-2 italic">Culinary Components</label>
+                        <button type="button" id="open-ingredients"
+                            class="w-full group flex items-center justify-between bg-white/5 border border-white/10 hover:border-cyan-500/40 rounded-2xl p-6 transition-all duration-500 hover:bg-cyan-500/5 shadow-xl">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-xl bg-cyan-500/10 flex items-center justify-center text-cyan-500 group-hover:scale-110 transition-transform">
+                                    <i class="fas fa-plus"></i>
+                                </div>
+                                <span class="text-sm font-black uppercase tracking-widest text-gray-400 group-hover:text-cyan-400 transition-colors">Define Ingredients & Quantities</span>
+                            </div>
+                            <i class="fas fa-arrow-right text-gray-700 group-hover:text-cyan-500 transition-all group-hover:translate-x-1"></i>
+                        </button>
                     </div>
 
                     <div class="group space-y-3">
@@ -109,4 +133,98 @@
             </div>
         </div>
     </div>
+
+    <div id="ingredients-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-6">
+        <div class="absolute inset-0 bg-black/90 backdrop-blur-xl" id="close-modal-overlay"></div>
+        <div class="relative bg-[#0a0a0a] border border-white/10 w-full max-w-3xl max-h-[85vh] overflow-hidden rounded-[3rem] shadow-2xl flex flex-col">
+            
+            <div class="p-10 border-b border-white/5 flex justify-between items-center">
+                <h3 class="text-2xl font-black uppercase tracking-tighter text-white">The <span class="text-orange-500">Pantry</span></h3>
+                <button type="button" id="close-modal-btn" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-500 hover:text-white transition-colors">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-10 custom-scrollbar">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    @isset($ingredients)
+                    @foreach($ingredients as $ingredient)
+                    <div class="group flex items-center gap-4 bg-white/[0.02] p-5 rounded-2xl border border-white/5 hover:border-cyan-500/30 transition-all">
+                        <input type="checkbox" form="recipe-form" name="ingredients[]" value="{{ $ingredient->id }}" 
+                            {{ in_array($ingredient->id, old('ingredients', $recipeIngredients ?? [])) ? 'checked' : '' }}
+                            class="w-5 h-5 rounded border-white/10 bg-black text-orange-500 focus:ring-0 focus:ring-offset-0">
+
+                        <div class="flex-1">
+                            <span class="text-sm font-black uppercase tracking-widest text-gray-300 group-hover:text-white transition-colors">{{ $ingredient->name }}</span>
+                        </div>
+
+                        <div class="flex gap-2 shrink-0">
+                            <input type="text" form="recipe-form" name="quantities[{{ $ingredient->id }}]" 
+                                value="{{ old('quantities.' . $ingredient->id, $recipe->ingredients->where('id', $ingredient->id)->first()?->pivot->quantity ?? '') }}"
+                                placeholder="Qty"
+                                class="w-16 bg-black/60 border border-white/10 rounded-xl text-xs p-3 text-white focus:border-cyan-500 outline-none font-bold">
+
+                            <select form="recipe-form" name="units[{{ $ingredient->id }}]"
+                                class="bg-black/60 border border-white/10 rounded-xl text-[10px] p-3 text-gray-400 focus:text-cyan-400 focus:border-cyan-500 outline-none uppercase font-black">
+                                <option value="g" {{ old('units.' . $ingredient->id, $recipe->ingredients->where('id', $ingredient->id)->first()?->pivot->unit ?? 'pcs') === 'g' ? 'selected' : '' }}>g</option>
+                                <option value="kg" {{ old('units.' . $ingredient->id, $recipe->ingredients->where('id', $ingredient->id)->first()?->pivot->unit ?? 'pcs') === 'kg' ? 'selected' : '' }}>kg</option>
+                                <option value="ml" {{ old('units.' . $ingredient->id, $recipe->ingredients->where('id', $ingredient->id)->first()?->pivot->unit ?? 'pcs') === 'ml' ? 'selected' : '' }}>ml</option>
+                                <option value="pcs" {{ old('units.' . $ingredient->id, $recipe->ingredients->where('id', $ingredient->id)->first()?->pivot->unit ?? 'pcs') === 'pcs' ? 'selected' : '' }}>pcs</option>
+                                <option value="tbsp" {{ old('units.' . $ingredient->id, $recipe->ingredients->where('id', $ingredient->id)->first()?->pivot->unit ?? 'pcs') === 'tbsp' ? 'selected' : '' }}>tbsp</option>
+                            </select>
+                        </div>
+                    </div>
+                    @endforeach
+                    @endisset
+                </div>
+            </div>
+
+            <div class="p-10 bg-white/[0.02] border-t border-white/5">
+                <button type="button" id="confirm-ingredients" class="w-full bg-cyan-500 hover:bg-white text-black font-black py-5 rounded-2xl transition-all uppercase tracking-widest text-[10px]">
+                    Lock In Selection
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(6, 182, 212, 0.2); border-radius: 10px; }
+    </style>
+
+    <script>
+        const modal = document.getElementById('ingredients-modal');
+        const openBtn = document.getElementById('open-ingredients');
+        const closeBtn = document.getElementById('close-modal-btn');
+        const confirmBtn = document.getElementById('confirm-ingredients');
+        const overlay = document.getElementById('close-modal-overlay');
+
+        openBtn.onclick = (e) => {
+            e.preventDefault();
+            modal.classList.remove('hidden');
+            modal.querySelector('.relative').classList.add('animate-in', 'fade-in', 'zoom-in-95');
+            document.body.style.overflow = 'hidden';
+        }
+
+        const close = () => {
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        closeBtn.onclick = close;
+        confirmBtn.onclick = close;
+        overlay.onclick = close;
+
+        document.querySelectorAll('input[name^="quantities"]').forEach(input => {
+            input.addEventListener('input', function() {
+                const id = this.name.match(/\[(\d+)\]/)[1];
+                const checkbox = document.querySelector(`input[name="ingredients[]"][value="${id}"]`);
+
+                if (this.value.trim() !== '') {
+                    checkbox.checked = true;
+                }
+            });
+        });
+    </script>
 </x-app-layout>

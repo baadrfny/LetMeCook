@@ -8,6 +8,7 @@ use App\Models\Categories;
 use App\Models\Ingredient;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class RecipeController extends Controller
 {
@@ -43,43 +44,21 @@ class RecipeController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'required|string',
-            'category_id' => 'required|exists:categories,id',
-            'preparation_steps' => 'required|string',
-            'cook_time' => 'nullable|integer|min:1',
-            'country_origin' => 'nullable|string|max:255',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'video_url' => 'nullable|url',
-            'ingredients' => 'nullable|array',
-            'quantities' => 'nullable|array',
-            'units' => 'nullable|array',
-        ]);
+        $validated = $request->validate($this->recipeRules(true));
 
         if ($request->hasFile('image')) {
             $validated['image'] = $request->file('image')->store('recipes', 'public');
         }
 
-        $ingredientsIds = $request->input('ingredients', []);
-        $quantities = $request->input('quantities', []);
-        $units = $request->input('units', []);
+        $recipeData = collect($validated)
+            ->except(['ingredients', 'quantities', 'units'])
+            ->toArray();
 
-        $recipeData = collect($validated)->except(['ingredients', 'quantities', 'units'])->toArray();
-        $recipe = Recipe::create($recipeData + ['user_id' => auth()->id()]);
+        $recipe = Auth::user()->recipes()->create($recipeData);
 
-        if (!empty($ingredientsIds)) {
-            $syncData = [];
-            foreach ($ingredientsIds as $id) {
-                $syncData[$id] = [
-                    'quantity' => $quantities[$id] ?? '0',
-                    'unit' => $units[$id] ?? 'pcs'
-                ];
-            }
-            $recipe->ingredients()->sync($syncData);
-        }
+        $this->syncIngredients($recipe, $validated);
 
-        return redirect()->route('my-recipes.index')->with('success', 'Recipe created successfully!');
+        return redirect()->route('dashboard')->with('success', 'Masterpiece Published!');
     }
 
     public function edit(Recipe $recipe)
@@ -101,19 +80,7 @@ class RecipeController extends Controller
             abort(403);
         }
 
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'required|string',
-            'category_id' => 'required|exists:categories,id',
-            'preparation_steps' => 'required|string',
-            'cook_time' => 'nullable|integer|min:1',
-            'country_origin' => 'nullable|string|max:255',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'video_url' => 'nullable|url',
-            'ingredients' => 'nullable|array',
-            'quantities' => 'nullable|array',
-            'units' => 'nullable|array',
-        ]);
+        $validated = $request->validate($this->recipeRules());
 
         if ($request->hasFile('image')) {
             if ($recipe->image) {
@@ -122,21 +89,10 @@ class RecipeController extends Controller
             $validated['image'] = $request->file('image')->store('recipes', 'public');
         }
 
-        $ingredientsIds = $request->input('ingredients', []);
-        $quantities = $request->input('quantities', []);
-        $units = $request->input('units', []);
-
         $recipeUpdateData = collect($validated)->except(['ingredients', 'quantities', 'units'])->toArray();
         $recipe->update($recipeUpdateData);
 
-        $syncData = [];
-        foreach ($ingredientsIds as $id) {
-            $syncData[$id] = [
-                'quantity' => $quantities[$id] ?? '0',
-                'unit' => $units[$id] ?? 'pcs'
-            ];
-        }
-        $recipe->ingredients()->sync($syncData);
+        $this->syncIngredients($recipe, $validated);
 
         return redirect()->route('my-recipes.index')->with('success', 'Recipe updated successfully!');
     }
@@ -172,5 +128,41 @@ class RecipeController extends Controller
         
         return view('recipes.show', compact('recipe', 'videoId'));
     }
-}
 
+    private function recipeRules(bool $isCreating = false): array
+    {
+        return [
+            'name' => 'required|string|max:255',
+            'description' => 'required|string',
+            'category_id' => 'required|exists:categories,id',
+            'preparation_steps' => 'required|string',
+            'cook_time' => 'required|integer|min:1',
+            'country_origin' => 'required|string|max:255',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'video_url' => 'nullable|url',
+            'ingredients' => [$isCreating ? 'required' : 'nullable', 'array', 'min:1'],
+            'ingredients.*' => ['integer', Rule::exists('ingredients', 'id')],
+            'quantities' => 'nullable|array',
+            'quantities.*' => 'nullable|string|max:50',
+            'units' => 'nullable|array',
+            'units.*' => 'nullable|string|max:20',
+        ];
+    }
+
+    private function syncIngredients(Recipe $recipe, array $validated): void
+    {
+        $ingredientIds = $validated['ingredients'] ?? [];
+        $quantities = $validated['quantities'] ?? [];
+        $units = $validated['units'] ?? [];
+        $syncData = [];
+
+        foreach ($ingredientIds as $id) {
+            $syncData[$id] = [
+                'quantity' => $quantities[$id] ?? null,
+                'unit' => $units[$id] ?? 'pcs',
+            ];
+        }
+
+        $recipe->ingredients()->sync($syncData);
+    }
+}
