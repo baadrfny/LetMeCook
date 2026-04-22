@@ -26,6 +26,7 @@
                 @endif
             </div>
 
+            
             <div class="bg-white/[0.02] border border-white/10 backdrop-blur-3xl rounded-[3.5rem] p-8 md:p-16 shadow-[0_40px_100px_rgba(0,0,0,0.5)]">
                 @if ($errors->any())
                 <div class="bg-red-500/10 border border-red-500 text-red-500 p-4 rounded-2xl mb-6">
