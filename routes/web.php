@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RecipeController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CountryController;
 use App\Http\Controllers\IngredientController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\AI\RecipeGeneratorController;
@@ -14,8 +15,6 @@ use Illuminate\Support\Facades\Route;
 
 
 
-Route::get('/what-to-cook', [RecipeGeneratorController::class, 'showAiGenerator'])->name('client.ai.index');
-Route::post('/ai/generate-guest', [RecipeGeneratorController::class, 'generate'])->name('ai.generate.guest');
 
 
 
@@ -36,36 +35,42 @@ Route::get('/dashboard', [RecipeController::class, 'index'])
     ->name('dashboard');
 
 
-Route::get('/test-ai', function (GroqService $groq) {
-    $result = $groq->generateRecipe(['chicken', 'garlic', 'lemon', 'olive oil']);
+// Route::get('/test-ai', function (GroqService $groq) {
+//     $result = $groq->generateRecipe(['chicken', 'garlic', 'lemon', 'olive oil']);
     
-    dd($result); 
-});
+//     dd($result); 
+// });
 
-Route::get('/ai-generator', [RecipeGeneratorController::class, 'index'])->name('ai.index');
-Route::post('/ai/generate', [RecipeGeneratorController::class, 'generate'])->name('ai.generate');
+// Route::get('/ai-generator', [RecipeGeneratorController::class, 'index'])->name('ai.index');
+// Route::post('/ai/generate', [RecipeGeneratorController::class, 'generate'])->name('ai.generate');
 /**
  * User Routes (Standard Authenticated Users)
  */
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'user'])->group(function () {
+
+    Route::get('/what-to-cook', [RecipeGeneratorController::class, 'showAiGenerator'])->name('client.ai.index');
+    Route::post('/ai/generate', [RecipeGeneratorController::class, 'generate'])->name('ai.generate');
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorites.index')->middleware('auth');
-    Route::post('/favorites/store', [FavoriteController::class, 'store'])->name('favorites.store')->middleware('auth');
-    Route::delete('/favorites/{favorite}', [FavoriteController::class, 'destroy'])->name('favorites.destroy')->middleware('auth');
+    Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorites.index');
+    Route::post('/favorites/store', [FavoriteController::class, 'store'])->name('favorites.store');
+    Route::delete('/favorites/{favorite}', [FavoriteController::class, 'destroy'])->name('favorites.destroy');
     
     // User Recipe Management
-    Route::get('/my-recipes', [RecipeController::class, 'myRecipesIndex'])->name('my-recipes.index');
-    Route::get('/my-recipes/create', [RecipeController::class, 'create'])->name('my-recipes.create');
-    Route::post('/my-recipes', [RecipeController::class, 'store'])->name('my-recipes.store');
+    // Route::get('/my-recipes', [RecipeController::class, 'myRecipesIndex'])->name('my-recipes.index');
+    // Route::get('/my-recipes/create', [RecipeController::class, 'create'])->name('my-recipes.create');
+    // Route::post('/my-recipes', [RecipeController::class, 'store'])->name('my-recipes.store');
     Route::get('/my-recipes/{recipe}', [RecipeController::class, 'show'])->name('my-recipes.show');
-    Route::get('/my-recipes/{recipe}/edit', [RecipeController::class, 'edit'])->name('my-recipes.edit');
-    Route::put('/my-recipes/{recipe}', [RecipeController::class, 'update'])->name('my-recipes.update');
-    Route::delete('/my-recipes/{recipe}', [RecipeController::class, 'destroy'])->name('my-recipes.destroy');
+    // Route::get('/my-recipes/{recipe}/edit', [RecipeController::class, 'edit'])->name('my-recipes.edit');
+    // Route::put('/my-recipes/{recipe}', [RecipeController::class, 'update'])->name('my-recipes.update');
+    // Route::delete('/my-recipes/{recipe}', [RecipeController::class, 'destroy'])->name('my-recipes.destroy');
     
     // Ingredients Management
     Route::get('/ingredients/list', [IngredientController::class, 'IngredientList'])->name('ingredients.list');
+
+
 });
 
 /**

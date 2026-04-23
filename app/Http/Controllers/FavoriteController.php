@@ -13,6 +13,12 @@ class FavoriteController extends Controller
         return view('favorites.index', compact('favorites'));
     }
 
+    public function indexShow()
+    {
+        $favorites = auth()->user()->favorites()->with('recipe.category')->get();
+        return view('recipes.show', compact('favorites'));
+    }
+
     public function store(Request $request)
     {
         $request->validate([

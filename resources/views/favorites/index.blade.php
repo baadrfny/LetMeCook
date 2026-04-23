@@ -100,7 +100,7 @@
                         <p class="text-gray-500 max-w-sm mb-10 font-medium leading-relaxed">
                             Every great chef needs a library of secrets. Start exploring and save your first recipe.
                         </p>
-                        <a href="{{ route('welcome') }}" 
+                        <a href="{{ route('dashboard') }}" 
                            class="bg-white text-black font-black py-4 px-10 rounded-2xl hover:bg-orange-500 hover:text-white transition-all shadow-xl">
                             Browse Recipes
                         </a>

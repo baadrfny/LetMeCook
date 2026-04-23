@@ -1,4 +1,8 @@
 <x-app-layout>
+    @php
+        $usedCategories = $categories->whereIn('id', $recipes->pluck('category_id')->filter()->unique()->values());
+    @endphp
+
     <div class="max-w-[1400px] mx-auto px-6 lg:px-10">
         
         <section class="relative pt-10 pb-16 flex flex-col lg:flex-row items-center gap-12 min-h-[75vh]">
@@ -23,10 +27,14 @@
                     <a href="#explore" class="bg-orange-500 hover:bg-orange-600 text-black font-bold py-4 px-12 rounded-2xl transition-all shadow-[0_20px_40px_rgba(249,115,22,0.2)] hover:scale-105 active:scale-95">
                         Browse Recipes
                     </a>
-                    <a href="{{ route('my-recipes.create') }}" class="group flex items-center gap-3 text-white font-semibold">
+                    @auth
+                    @if(auth()->user()->role === 'admin')
+                    <a href="{{ route('recipes.create') }}" class="group flex items-center gap-3 text-white font-semibold">
                         <span class="border-b-2 border-white/10 group-hover:border-orange-500 transition-all">Add yours</span>
                         <i class="fas fa-plus text-xs text-orange-500"></i>
                     </a>
+                    @endif
+                    @endauth
                 </div>
             </div>
 
@@ -44,10 +52,10 @@
         <section class="py-10 border-y border-white/5 bg-black/20 backdrop-blur-sm sticky top-0 z-40 mb-16">
             <div class="flex items-center justify-between gap-8">
                 <h2 class="hidden md:block text-sm font-bold uppercase tracking-widest text-orange-500">Categories</h2>
-                <div class="flex gap-4 overflow-x-auto no-scrollbar py-2">
-                    <button class="px-8 py-2.5 rounded-xl bg-white text-black text-xs font-black transition-all">All</button>
-                    @foreach($categories as $category)
-                        <button class="px-8 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs font-bold hover:bg-white/10 transition-all whitespace-nowrap">
+                <div class="flex gap-4 overflow-x-auto no-scrollbar py-2" data-category-filters>
+                    <button type="button" data-category-filter="all" class="px-8 py-2.5 rounded-xl bg-white text-black text-xs font-black transition-all whitespace-nowrap">All</button>
+                    @foreach($usedCategories as $category)
+                        <button type="button" data-category-filter="{{ $category->id }}" class="px-8 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs font-bold hover:bg-white/10 transition-all whitespace-nowrap">
                             {{ $category->name }}
                         </button>
                     @endforeach
@@ -56,9 +64,9 @@
         </section>
 
         <section id="explore" class="pb-32">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10" data-recipe-grid>
                 @forelse($recipes as $recipe)
-                    <div class="group relative flex flex-col bg-[#0d0d0d] border border-white/5 rounded-[2.5rem] overflow-hidden hover:border-orange-500/30 transition-all duration-700">
+                    <div data-recipe-card data-category-id="{{ $recipe->category_id }}" class="group relative flex flex-col bg-[#0d0d0d] border border-white/5 rounded-[2.5rem] overflow-hidden hover:border-orange-500/30 transition-all duration-700">
                         
                         <div class="relative h-80 overflow-hidden">
                             <img src="{{ $recipe->image ? asset('storage/' . $recipe->image) : 'https://via.placeholder.com/600x800' }}" 
@@ -73,6 +81,7 @@
                             </div>
 
                             @auth
+                                @if(auth()->user()->role === 'user')
                                 @if(auth()->user()->favorites()->where('recipe_id', $recipe->id)->exists())
                                     <form action="{{ route('favorites.destroy', auth()->user()->favorites()->where('recipe_id', $recipe->id)->first()->id) }}" method="POST" class="absolute top-6 right-6">
                                         @csrf
@@ -89,6 +98,7 @@
                                             <i class="far fa-heart"></i>
                                         </button>
                                     </form>
+                                @endif
                                 @endif
                             @endauth
                         </div>
@@ -121,11 +131,17 @@
                         </div>
                     </div>
                 @empty
-                    <div class="col-span-full text-center py-20 bg-white/[0.02] rounded-[3rem] border border-white/5">
+                    <div class="col-span-full text-center py-20 bg-white/[0.02] rounded-[3rem] border border-white/5" data-no-recipes-server>
                         <p class="text-gray-500 italic">No recipes found. Let's create something new!</p>
                     </div>
                 @endforelse
             </div>
+
+            @if($recipes->isNotEmpty())
+                <div data-no-recipes-filtered class="hidden text-center py-20 bg-white/[0.02] rounded-[3rem] border border-white/5 mt-10">
+                    <p class="text-gray-500 italic">No recipes found in this category.</p>
+                </div>
+            @endif
         </section>
     </div>
 
@@ -136,4 +152,57 @@
         }
         .animate-float { animation: float 7s ease-in-out infinite; }
     </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const filterButtons = document.querySelectorAll('[data-category-filter]');
+            const recipeCards = document.querySelectorAll('[data-recipe-card]');
+            const emptyState = document.querySelector('[data-no-recipes-filtered]');
+
+            if (!filterButtons.length || !recipeCards.length) {
+                return;
+            }
+
+            const activeClasses = ['bg-white', 'text-black'];
+            const inactiveClasses = ['bg-white/5', 'border', 'border-white/10', 'text-white'];
+
+            const updateActiveButton = (selectedCategory) => {
+                filterButtons.forEach((button) => {
+                    const isActive = button.dataset.categoryFilter === selectedCategory;
+
+                    button.classList.toggle('bg-white', isActive);
+                    button.classList.toggle('text-black', isActive);
+                    button.classList.toggle('bg-white/5', !isActive);
+                    button.classList.toggle('border', !isActive);
+                    button.classList.toggle('border-white/10', !isActive);
+                    button.classList.toggle('text-white', !isActive);
+                });
+            };
+
+            const filterRecipes = (selectedCategory) => {
+                let visibleCount = 0;
+
+                recipeCards.forEach((card) => {
+                    const matches = selectedCategory === 'all' || card.dataset.categoryId === selectedCategory;
+                    card.classList.toggle('hidden', !matches);
+
+                    if (matches) {
+                        visibleCount++;
+                    }
+                });
+
+                if (emptyState) {
+                    emptyState.classList.toggle('hidden', visibleCount !== 0);
+                }
+
+                updateActiveButton(selectedCategory);
+            };
+
+            filterButtons.forEach((button) => {
+                button.addEventListener('click', () => {
+                    filterRecipes(button.dataset.categoryFilter);
+                });
+            });
+        });
+    </script>
 </x-app-layout>

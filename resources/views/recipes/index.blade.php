@@ -20,7 +20,7 @@
                     </p>
                 </div>
                 
-                <a href="{{ route('my-recipes.create') }}" class="group relative inline-flex items-center gap-3 bg-cyan-500 hover:bg-white text-black font-black py-5 px-10 rounded-2xl transition-all duration-500 overflow-hidden shadow-2xl shadow-cyan-500/20">
+                <a href="{{ route('recipes.create') }}" class="group relative inline-flex items-center gap-3 bg-cyan-500 hover:bg-white text-black font-black py-5 px-10 rounded-2xl transition-all duration-500 overflow-hidden shadow-2xl shadow-cyan-500/20">
                     <span class="relative z-10 uppercase tracking-widest text-xs">Post New Recipe</span>
                     <i class="fas fa-plus relative z-10 group-hover:rotate-90 transition-transform"></i>
                 </a>
@@ -100,11 +100,11 @@
                                     </td>
                                     <td class="px-10 py-8">
                                         <div class="flex items-center justify-end space-x-4">
-                                            <a href="{{ route('my-recipes.edit', $recipe->id) }}" 
+                                            <a href="{{ route('recipes.edit', $recipe->id) }}" 
                                                class="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-400 hover:bg-cyan-500 hover:text-black transition-all group/edit">
                                                 <i class="fas fa-pencil-alt text-sm group-hover/edit:rotate-12 transition-transform"></i>
                                             </a>
-                                            <form action="{{ route('my-recipes.destroy', $recipe->id) }}" method="POST" onsubmit="return confirm('Delete this creation permanently?')">
+                                            <form action="{{ route('recipes.destroy', $recipe->id) }}" method="POST" onsubmit="return confirm('Delete this creation permanently?')">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" 
@@ -123,7 +123,7 @@
                                                 <i class="fas fa-utensils text-4xl"></i>
                                             </div>
                                             <p class="text-gray-500 font-bold text-xl mb-6">Your gallery is waiting for its first masterpiece.</p>
-                                            <a href="{{ route('my-recipes.create') }}" class="text-cyan-400 font-black uppercase tracking-widest text-xs border-b-2 border-cyan-400/30 pb-1 hover:border-cyan-400 transition-all">
+                                            <a href="{{ route('recipes.create') }}" class="text-cyan-400 font-black uppercase tracking-widest text-xs border-b-2 border-cyan-400/30 pb-1 hover:border-cyan-400 transition-all">
                                                 Start Creating
                                             </a>
                                         </div>

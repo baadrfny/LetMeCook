@@ -20,7 +20,7 @@ $width = match ($width) {
 
     <div data-dropdown-content
             class="absolute z-50 mt-2 {{ $width }} rounded-md shadow-lg {{ $alignmentClasses }} hidden"
-            style="display: none;">
+            >
         <div class="rounded-md ring-1 ring-black ring-opacity-5 {{ $contentClasses }}">
             {{ $content }}
         </div>

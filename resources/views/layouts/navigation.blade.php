@@ -12,15 +12,25 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" class="text-gray-400 hover:text-cyan-400 transition-colors">
                         {{ __('Dashboard') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('favorites.index')" :active="request()->routeIs('favorites.index')" class="text-gray-400 hover:text-cyan-400 transition-colors">
-                        {{ __('Favorites') }}
-                    </x-nav-link>
-                    <x-nav-link :href="route('my-recipes.index')" :active="request()->routeIs('my-recipes.index')" class="text-gray-400 hover:text-cyan-400 transition-colors">
-                        {{ __('My Recipes') }}
-                    </x-nav-link>
-                    <x-nav-link :href="route('client.ai.index')" :active="request()->routeIs('client.ai.index')" class="text-gray-400 hover:text-cyan-400 transition-colors">
-                        {{ __('Recipe suggestion') }}
-                    </x-nav-link>
+                    @auth
+                        @if(auth()->user()->role === 'user')
+                            <x-nav-link :href="route('favorites.index')" :active="request()->routeIs('favorites.index')" class="text-gray-400 hover:text-cyan-400 transition-colors">
+                                {{ __('Favorites') }}
+                            </x-nav-link>
+                        @endif
+                    @endauth
+                    @if(auth()->user()->role === 'admin')
+                        <x-nav-link :href="route('recipes.index')" :active="request()->routeIs('recipes.index')" class="text-gray-400 hover:text-cyan-400 transition-colors">
+                            {{ __('My Recipes') }}
+                        </x-nav-link>
+                    @endif
+                    @auth
+                        @if(auth()->user()->role === 'user')
+                            <x-nav-link :href="route('client.ai.index')" :active="request()->routeIs('client.ai.index')" class="text-gray-400 hover:text-cyan-400 transition-colors">
+                                {{ __('Recipe suggestion') }}
+                            </x-nav-link>
+                        @endif
+                    @endauth
 
                 </div>
             </div>

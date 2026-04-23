@@ -12,11 +12,13 @@
                     <span class="text-xs font-black uppercase tracking-widest">Back to Recipes</span>
                 </a>
 
+                @auth
                 @if(Auth::id() === $recipe->user_id || Auth::user()->role === 'admin')
-                    <a href="{{ route('my-recipes.edit', $recipe->id) }}" class="bg-white/5 border border-white/10 hover:border-cyan-500/50 hover:text-cyan-400 px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all">
+                    <a href="{{ route('recipes.edit', $recipe->id) }}" class="bg-white/5 border border-white/10 hover:border-cyan-500/50 hover:text-cyan-400 px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all">
                         Edit Recipe
                     </a>
                 @endif
+                @endauth
             </div>
 
             <div class="relative h-[500px] rounded-[3rem] overflow-hidden mb-12 border border-white/5 shadow-2xl">
@@ -24,8 +26,9 @@
                      class="w-full h-full object-cover shadow-inner" alt="{{ $recipe->name }}">
                 
                 @auth
+                    @if(! auth()->user()->role=== 'admin')
                     @if(auth()->user()->favorites()->where('recipe_id', $recipe->id)->exists())
-                        <form action="{{ route('favorites.destroy', auth()->user()->favorites()->where('recipe_id', $recipe->id)->first()->id) }}" method="POST" class="absolute top-6 right-20">
+                        <form action="{{ route('favorites.destroy', auth()->user()->favorites()->where('recipe_id', $recipe->id)->first()->id) }}" method="POST" class="absolute top-6 right-20 z-20">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="w-10 h-10 rounded-full bg-orange-500/30 backdrop-blur-xl border border-orange-500/40 flex items-center justify-center text-orange-500 hover:bg-orange-500 hover:text-white transition-all shadow-lg shadow-orange-500/30">
@@ -33,7 +36,7 @@
                             </button>
                         </form>
                     @else
-                        <form action="{{ route('favorites.store') }}" method="POST" class="absolute top-6 right-20">
+                        <form action="{{ route('favorites.store') }}" method="POST" class="absolute top-6 right-20 z-20">
                             @csrf
                             <input type="hidden" name="recipe_id" value="{{ $recipe->id }}">
                             <button type="submit" class="w-10 h-10 rounded-full bg-white/10 backdrop-blur-xl border border-white/10 flex items-center justify-center text-gray-400 hover:bg-orange-500 hover:text-white transition-all">
@@ -41,9 +44,10 @@
                             </button>
                         </form>
                     @endif
+                    @endif
                 @endauth
                 
-                <div class="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent"></div>
+                <div class="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent pointer-events-none"></div>
                 
                 <div class="absolute bottom-12 left-12 right-12">
                     <div class="flex items-center gap-3 mb-4">
@@ -61,6 +65,9 @@
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
                 
                 <div class="lg:col-span-2 space-y-12">
+
+                
+
                     <section>
                         <h2 class="text-[10px] font-black uppercase tracking-[0.3em] text-cyan-500 mb-6 flex items-center gap-4">
                             The Story <span class="h-px bg-white/5 flex-grow"></span>
@@ -70,10 +77,38 @@
                         </p>
                     </section>
 
+
+                    @if($recipe->video_url)
+                    <section class="bg-white/[0.02] border border-white/5 rounded-[2.5rem] p-10 backdrop-blur-3xl">
+                        <h2 class="text-2xl font-black text-white mb-8 tracking-tight flex items-center gap-3">
+                            <i class="fas fa-play-circle text-orange-500"></i>
+                            Video Tutorial
+                        </h2>
+                        <div class="aspect-video rounded-2xl overflow-hidden bg-black/50 border border-white/10">
+                            @if($videoId)
+                                <iframe 
+                                    src="https://www.youtube.com/embed/{{ $videoId }}" 
+                                    frameborder="0" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                    allowfullscreen
+                                    class="w-full h-full">
+                                </iframe>
+                            @else
+                                <div class="w-full h-full flex items-center justify-center">
+                                    <a href="{{ $recipe->video_url }}" target="_blank" class="bg-orange-500 hover:bg-white text-black font-black py-4 px-8 rounded-2xl transition-all shadow-lg shadow-orange-500/20 uppercase tracking-widest text-[10px] flex items-center gap-3">
+                                        <i class="fas fa-external-link-alt"></i>
+                                        Watch Video
+                                    </a>
+                                </div>
+                            @endif
+                        </div>
+                    </section>
+                    @endif
+
                     <section class="bg-white/[0.02] border border-white/5 rounded-[2.5rem] p-10 backdrop-blur-3xl">
                         <h2 class="text-2xl font-black text-white mb-8 tracking-tight">Preparation Steps</h2>
                         <div class="space-y-8 text-gray-400 font-medium leading-relaxed">
-                            {{-- افترضت هنا وجود خطوات، إذا لم توجد يمكنك عرض الوصف الكامل بشكل منسق --}}
+                            
                             <div class="flex gap-6">
                                 <span class="text-orange-500 font-black text-2xl italic opacity-50 italic">01.</span>
                                 <p>Begin by carefully selecting the freshest ingredients. Quality is the soul of this dish.</p>
@@ -87,6 +122,9 @@
                             </p>
                         </div>
                     </section>
+
+                    
+
                 </div>
 
                 <div class="lg:col-span-1">
