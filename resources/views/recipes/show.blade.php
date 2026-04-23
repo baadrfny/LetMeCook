@@ -104,6 +104,7 @@
                         </div>
                     </section>
                     @endif
+                    
 
                     <section class="bg-white/[0.02] border border-white/5 rounded-[2.5rem] p-10 backdrop-blur-3xl">
                         <h2 class="text-2xl font-black text-white mb-8 tracking-tight">Preparation Steps</h2>
